@@ -1,0 +1,221 @@
+{
+	"info": {
+		"_postman_id": "4128b7b3-f950-4e0b-961e-f39a03c41a89",
+		"name": "test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create item",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let respBody = pm.response.json();\r",
+							"\r",
+							"pm.environment.set('itemId',respBody.result.id);\r",
+							"\r",
+							"pm.test(\"Идентификатор не пуст\", function () {\r",
+							"    pm.expect(respBody.result.id).to.not.be.null\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Цена дороже 99 рублей\", function () {\r",
+							"    pm.expect(respBody.result.price).to.be.above(99)\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"function getRandomNumber (min, max){\r",
+							"    min = Math.ceil(min);\r",
+							"    max = Math.floor(max);\r",
+							"\r",
+							"    return Math.floor(Math.random()*(max-min))+min\r",
+							"}\r",
+							"\r",
+							"pm.environment.set('price', getRandomNumber (100, 1000));\r",
+							"pm.environment.set('size', getRandomNumber (42, 58));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"name\": \"Шортики\",\r\n    \"section\": \"Платья\",\r\n    \"description\": \"Модное платье из новой коллекции!\",\r\n    \"color\": \"RED\",\r\n    \"size\": {{size}},\r\n    \"price\": {{price}}\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://shop.bugred.ru/api/items/create/",
+					"protocol": "http",
+					"host": [
+						"shop",
+						"bugred",
+						"ru"
+					],
+					"path": [
+						"api",
+						"items",
+						"create",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update item",
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"id\":{{itemId}},\r\n    \"name\":\"Шортики\",\r\n    \"section\":\"Платья\",\r\n    \"description\":\"Модное платье из новой коллекции!\",\r\n    \"color\":\"RED\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://shop.bugred.ru/api/items/update/",
+					"protocol": "http",
+					"host": [
+						"shop",
+						"bugred",
+						"ru"
+					],
+					"path": [
+						"api",
+						"items",
+						"update",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get item",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"let respBody = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Ответ выполнился успешно, статус 200\", function(){\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Параметр color соответствует указанному значению\", function(){\r",
+							"    pm.expect(respBody.result.color).to.equal('RED');\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://shop.bugred.ru/api/items/get?id={{itemId}}",
+					"protocol": "http",
+					"host": [
+						"shop",
+						"bugred",
+						"ru"
+					],
+					"path": [
+						"api",
+						"items",
+						"get"
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "{{itemId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete item",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"itemId = pm.environment.get(\"itemId\")\r",
+							"\r",
+							"var options = {\r",
+							"  'method': 'GET',\r",
+							"  'url': 'http://shop.bugred.ru/api/items/get?id=' + itemId\r",
+							"};\r",
+							"\r",
+							"pm.sendRequest(options, function (error, response) {\r",
+							"  if (error) throw new Error(error);\r",
+							"  let itemInfo = response.text();\r",
+							"\r",
+							"              pm.test(\"Ответ не содержит информацию об идентификаторе удаленного товара\", function () {\r",
+							"                pm.expect(itemInfo).to.not.include('\"id\":'+ itemId);\r",
+							"            });\r",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://shop.bugred.ru/api/items/delete/?id={{itemId}}",
+					"protocol": "http",
+					"host": [
+						"shop",
+						"bugred",
+						"ru"
+					],
+					"path": [
+						"api",
+						"items",
+						"delete",
+						""
+					],
+					"query": [
+						{
+							"key": "id",
+							"value": "{{itemId}}"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
